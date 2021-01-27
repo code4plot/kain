@@ -1,0 +1,36 @@
+// a backend js web module for sending emails to users/members
+
+import wixCrmBackend from 'wix-crm-backend';
+import {emailOrderVars} from 'public/utils/email-variables.js'
+
+export function setupEmail(order, emailId) {
+  //order is an object returned from getOrder() function called on
+  //wix element thankYouPage
+
+	//assign variables to be passed to the sendEmail function
+	const vars = emailOrderVars(order);
+    
+  //attempt to create new contact (temporary) and returns contactId
+	wixCrmBackend.createContact({
+		"emails":[order.buyerInfo.email] //email used for ordering
+	})
+	.then(contactId => {
+		return sendEmail(emailId,contactId,vars);
+	})
+	//if already exist, but user is not logged in.
+	.catch((err) => {
+		console.log("email exists in system, use order.buyerInfo.id");
+		return sendEmail(emailId, order.buyerInfo.id, vars); 
+	});
+}
+
+export function sendEmail(emailId, contactId, vars){
+	//send out the email
+	return wixCrmBackend.emailContact(emailId, contactId, {variables:vars})
+	.then(() => {
+			console.log("success");
+		})
+	.catch((err) => {
+			console.log("send-email.jsw . sendEmail " + err);
+	});
+}
