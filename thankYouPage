@@ -1,0 +1,19 @@
+import {setupEmail, sendEmail} from 'backend/send-email';
+import {emailOrderVars} from 'public/utils/email-variables.js';
+import wixUsers from 'wix-users';
+
+$w.onReady(function () {
+	let isLoggedIn = wixUsers.currentUser.loggedIn;
+  //get order info from thankyoupage
+	$w('#thankYouPage1').getOrder()
+	.then(order => {
+		if (isLoggedIn) {
+			console.log("is logged in");
+			const vars = emailOrderVars(order);
+			//skip contact creation/update step
+			sendEmail('emailOrder', wixUsers.currentUser.id, vars);
+		} else {
+		setupEmail(order, 'emailOrder');
+		}
+	});
+});
